@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 1",
+	"properties": {
+		"content": {
+			"query": "--creating external table in dediacted sql server pool\n\n--step 1: create external datasource..\n\nCREATE DATABASE SCOPED CREDENTIAL myCredential\nWITH IDENTITY = 'Managed identity'\nGO\n\n--step 2: create external datasource\n--if we want to cretae native external table then in the below script remove type..\n\nCREATE EXTERNAL data source myDataSource WITH\n(\n    LOCATION = 'abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net',\n    CREDENTIAL = myCredential,\n    TYPE = HADOOP\n)\nGO\n\n\n--stpe 3: create external file format..\n\nCREATE EXTERNAL FILE FORMAT parquetFileFormat WITH(\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\nGO\n\n--step 5: create external tabl\n\n\n\nCREATE EXTERNAL TABLE dbo.ext_table_hdp (\n\t[DateID] int,\n\t[MedallionID] int,\n\t[HackneyLicenseID] int,\n\t[PickupTimeID] int,\n\t[DropoffTimeID] int,\n\t[PickupGeographyID] int,\n\t[DropoffGeographyID] int,\n\t[PickupLatitude] float,\n\t[PickupLongitude] float,\n\t[PickupLatLong] nvarchar(4000),\n\t[DropoffLatitude] float,\n\t[DropoffLongitude] float,\n\t[DropoffLatLong] nvarchar(4000),\n\t[PassengerCount] int,\n\t[TripDurationSeconds] int,\n\t[TripDistanceMiles] float,\n\t[PaymentType] nvarchar(4000),\n\t[FareAmount] numeric(19,4),\n\t[SurchargeAmount] numeric(19,4),\n\t[TaxAmount] numeric(19,4),\n\t[TipAmount] numeric(19,4),\n\t[TollsAmount] numeric(19,4),\n\t[TotalAmount] numeric(19,4)\n\t)\n\tWITH (\n\tLOCATION = '/Data/NYCTripSmall.parquet',\n\tDATA_SOURCE = myDataSource,\n\tFILE_FORMAT = parquetFileFormat\n\t)\nGO\n\nSELECT * FROM dbo.ext_table_hdp\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlserver",
+				"poolName": "sqlserver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -13,7 +13,7 @@ GO
 
 CREATE DATABASE SCOPED CREDENTIAL myCredential
 WITH IDENTITY = 'SHARED ACCESS SIGNATURE',
-secret = 'sv=2024-11-04&ss=bfqt&srt=sco&sp=rwdlacupyx&se=2025-11-12T13:27:07Z&st=2025-11-12T05:12:07Z&spr=https&sig=KjgW6LT6xScki5vkSDzzNOlP7lmWseXP37TLrjHG%2B9I%3D'
+secret = 'SAS TOKEN'
 --this secret key can be found inside storage account in shared access signature-genaerate sas token--
 GO
 

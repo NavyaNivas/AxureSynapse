@@ -154,6 +154,26 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--if we want to change the distribution type of the table we can do as below..\n\nCREATE TABLE FactInternetSales\n(\n    ProductKey int NOT NULL,\n    OrderDateKey int NOT NULL,\n    DueDateKey int NOT NULL,\n    ShipDateKey int NOT NULL,\n    CustomerKey int NOT NULL,\n    PromotionKey int NOT NULL,\n    CurrencyKey int NOT NULL,\n    SalesTerritoryKey int NOT NULL,\n    SalesOrderNumber nvarchar(20) NOT NULL,\n    SalesOrderLineNumber tinyint NOT NULL,\n    RevisionNumber tinyint NOT NULL,\n    OrderQuantity smallint NOT NULL,\n    UnitPrice money NOT NULL,\n    ExtendedAmount money NOT NULL,\n    UnitPriceDiscountPct float NOT NULL,\n    DiscountAmount float NOT NULL,\n    ProductStandardCost money NOT NULL,\n    TotalProductCost money NOT NULL,\n    SalesAmount money NOT NULL,\n    TaxAmt money NOT NULL,\n    Freight money NOT NULL,\n    CarrierTrackingNumber nvarchar(25),\n    CustomerPONumber nvarchar(25)\n)\nWITH( \n HEAP, \n DISTRIBUTION = ROUND_ROBIN \n);\n\n--creating new table with same schema s above table but this tym using distribution na d coulmnstore indexand partition\n--partion helps us to d=identify data with paration id so makes it easy to access..\n\nCREATE TABLE FactInternetSales_new\nWITH\n(\n    CLUSTERED COLUMNSTORE INDEX,\n    DISTRIBUTION = HASH(ProductKey),\n    PARTITION\n    (\n        OrderDateKey RANGE RIGHT FOR VALUES\n        (\n        20000101,20010101,20020101,20030101,20040101,20050101,20060101,20070101,20080101,20090101,\n        20100101,20110101,20120101,20130101,20140101,20150101,20160101,20170101,20180101,20190101,\n        20200101,20210101,20220101,20230101,20240101,20250101,20260101,20270101,20280101,20290101\n        )\n    )\n)\nAS SELECT * FROM FactInternetSales;\n\n--here renaming and dropping the table and finally we have table with distribution type as hash..can check in the icon against the table in the data tab..\n\nRENAME OBJECT [dbo].[FactInternetSales] TO FactInternetSales_old\nRENAME object FactInternetSales_new to FactInternetSales\ndrop  TABLE FactInternetSales_old\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sqlserverPool",
+						"poolName": "sqlserverPool"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/sqlserverPool')]",
 			"type": "Microsoft.Synapse/workspaces/sqlPools",
 			"apiVersion": "2019-06-01-preview",

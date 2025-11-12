@@ -1,0 +1,169 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "synapse-workspace1505"
+		},
+		"synapse-workspace1505-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'synapse-workspace1505-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapse-workspace1505.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"synapse-workspace1505-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://synapsestorage1505.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/synapse-workspace1505-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('synapse-workspace1505-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/synapse-workspace1505-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('synapse-workspace1505-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--create database\ncreate DATABASE demoDb\nGO\n\n--Use this database as primary..by default master will be there\nuse demoDb\nGo\n\n\n--Create master key encryption usinh scoped credential\ncreate MASTER KEY ENCRYPTION BY PASSWORD = 'Password@123'\nGO\n\nCREATE DATABASE SCOPED CREDENTIAL myCredential\nWITH IDENTITY = 'SHARED ACCESS SIGNATURE',\nsecret = 'sas token'\n--this secret key can be found inside storage account in shared access signature-genaerate sas token--\nGO\n\n\n--create external datasource\ncreate EXTERNAL DATA SOURCE  myDataSource with(\n\n    LOCATION = 'https://synapsestorage1505.blob.core.windows.net/',   --location can be found in accountstorage level-settings-primaryendpoint--\n    CREDENTIAL = myCredential\n)\nGO\n\n\n--create extrenal file format\nCREATE EXTERNAL FILE FORMAT parquetFileFormat WITH(\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\nGO\n\n\n--create schema\ncreate SCHEMA NYCTaxi\nGO\n\n\n--create external table inside the schema(cetas)\nCREATE EXTERNAL TABLE NYCTaxi.passengerDetails WITH(\n    LOCATION = 'synapsecontainer/NYCTaxi/DATA',               --location inside the synapse container--\n    DATA_SOURCE = myDataSource,\n    FILE_FORMAT = parquetFileFormat\n)\nAS\nSELECT TOP 100 * FROM\nOPENROWSET(\n\n    BULK 'https://synapsestorage1505.dfs.core.windows.net/synapsecontainer/Data/NYCTripSmall.parquet',\n    FORMAT = 'parquet'\n) \nAS[result]\nGO\n\n--to check the data in the extrenal db\nselect * from NYCTaxi.passengerDetails\n\n--can also do this by reading the parquet file in the extrnal datasource location..\nSELECT TOP 100 * FROM\nOPENROWSET(\n\n    BULK 'https://synapsestorage1505.dfs.core.windows.net/synapsecontainer/NYCTaxi/DATA/AC33B604-2030-4E4C-ACB8-3F4E5256968F_2_0-1.parquet',\n    FORMAT = 'parquet'\n) \nAS[result]\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "demoDb",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--create database\ncreate DATABASE demoDb1\nGO\n\n--Use this database as primary..by default master will be there\nuse demoDb1\nGo\n\n\n--Create master key encryption using Managed identity--no need to pass the storage account sas token here..\ncreate MASTER KEY ENCRYPTION BY PASSWORD = 'Password@123'\nGO\n\nCREATE DATABASE SCOPED CREDENTIAL myCredential\nWITH IDENTITY = 'Managed identity'\nGO\n\n\n--create external datasource\ncreate EXTERNAL DATA SOURCE  myDataSource with(\n\n    LOCATION = 'https://synapsestorage1505.blob.core.windows.net/',   --location can be found in accountstorage level-settings-primaryendpoint--\n    CREDENTIAL = myCredential\n)\nGO\n\n\n--create extrenal file format\nCREATE EXTERNAL FILE FORMAT parquetFileFormat WITH(\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\nGO\n\n\n--create schema\ncreate SCHEMA NYCTaxi\nGO\n\n\n--create external table inside the schema(cetas)\n\nCREATE EXTERNAL TABLE NYCTaxi.passengerDetails WITH(\n    LOCATION = 'synapsecontainer/NYCTaxi_2/DATA',               --location inside the synapse container--\n    DATA_SOURCE = myDataSource,\n    FILE_FORMAT = parquetFileFormat\n)\nAS\nSELECT TOP 100 * FROM\nOPENROWSET(\n\n    BULK 'https://synapsestorage1505.dfs.core.windows.net/synapsecontainer/Data/NYCTripSmall.parquet',\n    FORMAT = 'parquet'\n) \nAS[result]\nGO\n\n--to check the data in the extrenal db\nselect * from NYCTaxi.passengerDetails\n\n--can also do this by reading the parquet file in the extrnal datasource location..\nSELECT TOP 100 * FROM\nOPENROWSET(\n\n    BULK 'https://synapsestorage1505.dfs.core.windows.net/synapsecontainer/NYCTaxi_2/DATA/98A04E24-7493-49DF-A1CB-30561682C3CA_6_0-1.parquet',\n    FORMAT = 'parquet'\n) \nAS[result]\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "demoDb1",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--First create dedicated sql pool and then connect to it while writing the script\n--create table inside the db..\nCREATE TABLE [dbo].[employees]\n(\n    empID INT NOT NULL,\n    empName NVARCHAR(50),\n    gender NVARCHAR(20),\n    dept NVARCHAR(20)\n)\nWITH\n(\n   DISTRIBUTION = HASH(empID),\n   CLUSTERED COLUMNSTORE index\n);\nGO\n\n\n--inserting data into the table\nINSERT INTO [dbo].[employees] VALUES (1,'Navya','Female','IT');\nINSERT INTO [dbo].[employees] VALUES (2,'Gaanavi','Female','HR');\nINSERT INTO [dbo].[employees] VALUES (3,'Sahasra','Female','Sales');\nINSERT INTO [dbo].[employees] VALUES (4,'Nikshit','Male','Sales');\nINSERT INTO [dbo].[employees] VALUES (5,'Chaitanya','Male','Research');\nINSERT INTO [dbo].[employees] VALUES (6,'Ramya','Female','HR');\nINSERT INTO [dbo].[employees] VALUES (7,'Phani','Male','IT');\nINSERT INTO [dbo].[employees] VALUES (8,'Gayatri','Female','IT');\nINSERT INTO [dbo].[employees] VALUES (9,'Srinidhi','Female','HR');\nINSERT INTO [dbo].[employees] VALUES (10,'Sri Maha','Female','Sales');\nGO\n\nselect * from [dbo].[employees] ORDER by empID\n\n\n--CTAS --creating another table by inserting the data from the previous table..\n\nCREATE TABLE [dbo].[employees_1]\nWITH\n(\n    DISTRIBUTION = HASH(empID),\n    CLUSTERED COLUMNSTORE INDEX\n)\nAS \nSELECT * from [dbo].[employees] WHERE dept = 'IT' \nGO\n\n--checking the data inside the 2nd table\n\nselect * from [dbo].[employees_1] ORDER BY empID",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sqlserverPool",
+						"poolName": "sqlserverPool"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sqlserverPool')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "eastus2"
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 3",
+	"properties": {
+		"content": {
+			"query": "--First create dedicated sql pool and then connect to it while writing the script\n--create table inside the db..\nCREATE TABLE [dbo].[employees]\n(\n    empID INT NOT NULL,\n    empName NVARCHAR(50),\n    gender NVARCHAR(20),\n    dept NVARCHAR(20)\n)\nWITH\n(\n   DISTRIBUTION = HASH(empID),\n   CLUSTERED COLUMNSTORE index\n);\nGO\n\n\n--inserting data into the table\nINSERT INTO [dbo].[employees] VALUES (1,'Navya','Female','IT');\nINSERT INTO [dbo].[employees] VALUES (2,'Gaanavi','Female','HR');\nINSERT INTO [dbo].[employees] VALUES (3,'Sahasra','Female','Sales');\nINSERT INTO [dbo].[employees] VALUES (4,'Nikshit','Male','Sales');\nINSERT INTO [dbo].[employees] VALUES (5,'Chaitanya','Male','Research');\nINSERT INTO [dbo].[employees] VALUES (6,'Ramya','Female','HR');\nINSERT INTO [dbo].[employees] VALUES (7,'Phani','Male','IT');\nINSERT INTO [dbo].[employees] VALUES (8,'Gayatri','Female','IT');\nINSERT INTO [dbo].[employees] VALUES (9,'Srinidhi','Female','HR');\nINSERT INTO [dbo].[employees] VALUES (10,'Sri Maha','Female','Sales');\nGO\n\nselect * from [dbo].[employees] ORDER by empID\n\n\n--CTAS --creating another table by inserting the data from the previous table..\n\nCREATE TABLE [dbo].[employees_1]\nWITH\n(\n    DISTRIBUTION = HASH(empID),\n    CLUSTERED COLUMNSTORE INDEX\n)\nAS \nSELECT * from [dbo].[employees] WHERE dept = 'IT' \nGO\n\n--checking the data inside the 2nd table\n\nselect * from [dbo].[employees_1] ORDER BY empID",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlserverPool",
+				"poolName": "sqlserverPool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

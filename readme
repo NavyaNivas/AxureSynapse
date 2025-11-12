@@ -1,1 +1,1 @@
-Will post all the scripts i worked on in azure synapse
+These scripts are used to create teh external datasource and then create external table using CETAS in serverless pool by reading the parquet file availbe in blob container inside the storage account.

@@ -31,7 +31,7 @@ GO
 select * from [dbo].[employees] ORDER by empID
 
 
---CTAS --creating another table by inserting the data from the previous table..
+--CTAS --creating another table by inserting the data from the previous table.. with same column for hashing
 
 CREATE TABLE [dbo].[employees_1]
 WITH
@@ -46,3 +46,39 @@ GO
 --checking the data inside the 2nd table
 
 select * from [dbo].[employees_1] ORDER BY empID
+
+
+
+--CTAS --creating another table by inserting the data from the previous table.. with different column for hashing
+
+CREATE TABLE [dbo].[employees_2]
+WITH
+(
+    DISTRIBUTION = HASH(empName),
+    CLUSTERED COLUMNSTORE INDEX
+)
+AS 
+SELECT * from [dbo].[employees] WHERE dept = 'IT' 
+GO
+
+--checking the data inside the 2nd table
+
+select * from [dbo].[employees_2] ORDER BY empID
+
+
+
+--CTAS --creating another table by inserting the data from the previous table.. with different distribution
+
+CREATE TABLE [dbo].[employees_3]
+WITH
+(
+    DISTRIBUTION = ROUND_ROBIN,
+    CLUSTERED COLUMNSTORE INDEX
+)
+AS 
+SELECT * from [dbo].[employees] WHERE dept = 'IT' 
+GO
+
+--checking the data inside the 2nd table
+
+select * from [dbo].[employees_3] ORDER BY empID

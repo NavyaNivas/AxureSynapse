@@ -22,6 +22,15 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('workspaceName'), '/sqlserver')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/synapse-workspace1505-WorkspaceDefaultSqlServer')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
@@ -159,7 +168,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "--if we want to change the distribution type of the table we can do as below..\n\nCREATE TABLE FactInternetSales\n(\n    ProductKey int NOT NULL,\n    OrderDateKey int NOT NULL,\n    DueDateKey int NOT NULL,\n    ShipDateKey int NOT NULL,\n    CustomerKey int NOT NULL,\n    PromotionKey int NOT NULL,\n    CurrencyKey int NOT NULL,\n    SalesTerritoryKey int NOT NULL,\n    SalesOrderNumber nvarchar(20) NOT NULL,\n    SalesOrderLineNumber tinyint NOT NULL,\n    RevisionNumber tinyint NOT NULL,\n    OrderQuantity smallint NOT NULL,\n    UnitPrice money NOT NULL,\n    ExtendedAmount money NOT NULL,\n    UnitPriceDiscountPct float NOT NULL,\n    DiscountAmount float NOT NULL,\n    ProductStandardCost money NOT NULL,\n    TotalProductCost money NOT NULL,\n    SalesAmount money NOT NULL,\n    TaxAmt money NOT NULL,\n    Freight money NOT NULL,\n    CarrierTrackingNumber nvarchar(25),\n    CustomerPONumber nvarchar(25)\n)\nWITH( \n HEAP, \n DISTRIBUTION = ROUND_ROBIN \n);\n\n--creating new table with same schema s above table but this tym using distribution na d coulmnstore indexand partition\n--partion helps us to d=identify data with paration id so makes it easy to access..\n\nCREATE TABLE FactInternetSales_new\nWITH\n(\n    CLUSTERED COLUMNSTORE INDEX,\n    DISTRIBUTION = HASH(ProductKey),\n    PARTITION\n    (\n        OrderDateKey RANGE RIGHT FOR VALUES\n        (\n        20000101,20010101,20020101,20030101,20040101,20050101,20060101,20070101,20080101,20090101,\n        20100101,20110101,20120101,20130101,20140101,20150101,20160101,20170101,20180101,20190101,\n        20200101,20210101,20220101,20230101,20240101,20250101,20260101,20270101,20280101,20290101\n        )\n    )\n)\nAS SELECT * FROM FactInternetSales;\n\n--here renaming and dropping the table and finally we have table with distribution type as hash..can check in the icon against the table in the data tab..\n\nRENAME OBJECT [dbo].[FactInternetSales] TO FactInternetSales_old\nRENAME object FactInternetSales_new to FactInternetSales\ndrop  TABLE FactInternetSales_old\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+					"query": "--if we want to change the distribution type of the table we can do as below..\n\nCREATE TABLE FactInternetSales\n(\n    ProductKey int NOT NULL,\n    OrderDateKey int NOT NULL,\n    DueDateKey int NOT NULL,\n    ShipDateKey int NOT NULL,\n    CustomerKey int NOT NULL,\n    PromotionKey int NOT NULL,\n    CurrencyKey int NOT NULL,\n    SalesTerritoryKey int NOT NULL,\n    SalesOrderNumber nvarchar(20) NOT NULL,\n    SalesOrderLineNumber tinyint NOT NULL,\n    RevisionNumber tinyint NOT NULL,\n    OrderQuantity smallint NOT NULL,\n    UnitPrice money NOT NULL,\n    ExtendedAmount money NOT NULL,\n    UnitPriceDiscountPct float NOT NULL,\n    DiscountAmount float NOT NULL,\n    ProductStandardCost money NOT NULL,\n    TotalProductCost money NOT NULL,\n    SalesAmount money NOT NULL,\n    TaxAmt money NOT NULL,\n    Freight money NOT NULL,\n    CarrierTrackingNumber nvarchar(25),\n    CustomerPONumber nvarchar(25)\n)\nWITH( \n HEAP, \n DISTRIBUTION = ROUND_ROBIN \n);\n\n--creating new table with same schema s above table but this tym using distribution na d coulmnstore indexand partition\n--partion helps us to identify data with paration id so makes it easy to access..\n\nCREATE TABLE FactInternetSales_new\nWITH\n(\n    CLUSTERED COLUMNSTORE INDEX,\n    DISTRIBUTION = HASH(ProductKey),\n    PARTITION\n    (\n        OrderDateKey RANGE RIGHT FOR VALUES\n        (\n        20000101,20010101,20020101,20030101,20040101,20050101,20060101,20070101,20080101,20090101,\n        20100101,20110101,20120101,20130101,20140101,20150101,20160101,20170101,20180101,20190101,\n        20200101,20210101,20220101,20230101,20240101,20250101,20260101,20270101,20280101,20290101\n        )\n    )\n)\nAS SELECT * FROM FactInternetSales;\n\n--here renaming and dropping the table and finally we have table with distribution type as hash..can check in the icon against the table in the data tab..\n\nRENAME OBJECT [dbo].[FactInternetSales] TO FactInternetSales_old\nRENAME object FactInternetSales_new to FactInternetSales\ndrop  TABLE FactInternetSales_old\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -174,7 +183,27 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/sqlserverPool')]",
+			"name": "[concat(parameters('workspaceName'), '/SQL script 5')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--creating external table in dediacted sql server pool\n\n--step 1: create external datasource..\n\nCREATE DATABASE SCOPED CREDENTIAL myCredential\nWITH IDENTITY = 'Managed identity'\nGO\n\n--step 2: create external datasource\n--if we want to cretae native external table then in the below script remove type..\n\nCREATE EXTERNAL data source myDataSource WITH\n(\n    LOCATION = 'abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net',\n    CREDENTIAL = myCredential,\n    TYPE = HADOOP\n)\nGO\n\n\n--stpe 3: create external file format..\n\nCREATE EXTERNAL FILE FORMAT parquetFileFormat WITH(\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\nGO\n\n--step 5: create external tabl\n\n\n\nCREATE EXTERNAL TABLE dbo.ext_table_hdp (\n\t[DateID] int,\n\t[MedallionID] int,\n\t[HackneyLicenseID] int,\n\t[PickupTimeID] int,\n\t[DropoffTimeID] int,\n\t[PickupGeographyID] int,\n\t[DropoffGeographyID] int,\n\t[PickupLatitude] float,\n\t[PickupLongitude] float,\n\t[PickupLatLong] nvarchar(4000),\n\t[DropoffLatitude] float,\n\t[DropoffLongitude] float,\n\t[DropoffLatLong] nvarchar(4000),\n\t[PassengerCount] int,\n\t[TripDurationSeconds] int,\n\t[TripDistanceMiles] float,\n\t[PaymentType] nvarchar(4000),\n\t[FareAmount] numeric(19,4),\n\t[SurchargeAmount] numeric(19,4),\n\t[TaxAmount] numeric(19,4),\n\t[TipAmount] numeric(19,4),\n\t[TollsAmount] numeric(19,4),\n\t[TotalAmount] numeric(19,4)\n\t)\n\tWITH (\n\tLOCATION = '/Data/NYCTripSmall.parquet',\n\tDATA_SOURCE = myDataSource,\n\tFILE_FORMAT = parquetFileFormat\n\t)\nGO\n\nSELECT * FROM dbo.ext_table_hdp\n\n\n\n--stpes to create native external table..\n\nCREATE DATABASE SCOPED CREDENTIAL myCredential1\nWITH IDENTITY = 'Managed identity'\nGO\n\n--step 2: create external datasource\n--(if we want to cretae native external table then in the below script remove type..)\n\nCREATE EXTERNAL data source myDataSource1 WITH\n(\n    LOCATION = 'abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net',\n    CREDENTIAL = myCredential1\n   \n)\nGO\n\n\n--stpe 3: create external file format..\n\nCREATE EXTERNAL FILE FORMAT parquetFileFormat1 WITH(\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\nGO\n\n--step 5: create external tabl\n\n\n\nCREATE EXTERNAL TABLE dbo.ext_table_native (\n\t[DateID] int,\n\t[MedallionID] int,\n\t[HackneyLicenseID] int,\n\t[PickupTimeID] int,\n\t[DropoffTimeID] int,\n\t[PickupGeographyID] int,\n\t[DropoffGeographyID] int,\n\t[PickupLatitude] float,\n\t[PickupLongitude] float,\n\t[PickupLatLong] nvarchar(4000),\n\t[DropoffLatitude] float,\n\t[DropoffLongitude] float,\n\t[DropoffLatLong] nvarchar(4000),\n\t[PassengerCount] int,\n\t[TripDurationSeconds] int,\n\t[TripDistanceMiles] float,\n\t[PaymentType] nvarchar(4000),\n\t[FareAmount] numeric(19,4),\n\t[SurchargeAmount] numeric(19,4),\n\t[TaxAmount] numeric(19,4),\n\t[TipAmount] numeric(19,4),\n\t[TollsAmount] numeric(19,4),\n\t[TotalAmount] numeric(19,4)\n\t)\n\tWITH (\n\tLOCATION = '/Data/NYCTripSmall.parquet',\n\tDATA_SOURCE = myDataSource1,\n\tFILE_FORMAT = parquetFileFormat1\n\t)\nGO\n\n\n--comparing performance of hadoop and native tables::\n\nSELECT top 10* FROM dbo.ext_table_native\n\nselect top 10* from dbo.ext_table_hdp\n\n--native is faster when compared to hadoop..time to execute is less in native..\n\n--create table usning external tables through CTAS\n\n\n\ncreate TABLE dbo.tb1\nwith\n(\n\n    distribution = hash(MedallionID),\n    clustered columnstore index\n)\nas \nselect * from dbo.ext_table_hdp\nGO\n\nselect * from dbo.tb1\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sqlserver",
+						"poolName": "sqlserver"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sqlserver')]",
 			"type": "Microsoft.Synapse/workspaces/sqlPools",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {

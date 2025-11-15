@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "6274b5b3-aa12-4208-acb0-e400bfea3fe9"
+				"spark.autotune.trackingId": "f8c84f5e-453d-4ee7-b7bb-1e75a8f5a86a"
 			}
 		},
 		"metadata": {
@@ -51,7 +51,105 @@
 			{
 				"cell_type": "code",
 				"source": [
-					"Import pandas as pd"
+					"spark.conf.set(\"spark.sql.execution.arrow.pyspark.enabled\", \"false\")\n",
+					""
+				],
+				"execution_count": 40
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<mark>**Read and write opertaions in the default storage account using pandas library**</mark>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"print(\"Hello\")"
+				],
+				"execution_count": 24
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import pandas as pd"
+				],
+				"execution_count": 27
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df=pd.read_csv('abfss://input@secondarystorageaccount.dfs.core.windows.net/employee_data.csv')\n",
+					"print(df)"
+				],
+				"execution_count": 28
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_new=df[df['deptID']==10]\n",
+					"print(df_new)\n",
+					"\n",
+					""
+				],
+				"execution_count": 29
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_new.to_csv('abfss://output@secondarystorageaccount.dfs.core.windows.net/data.csv')"
+				],
+				"execution_count": 31
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<mark>**Read & write operations of parquet file usinh pandas**</mark>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import pandas as pd\n",
+					"df = spark.read.load(path='abfss://input@secondarystorageaccount.dfs.core.windows.net/salary_data.parquet',format='parquet')\n",
+					"df_new=df.toPandas()\n",
+					"print(df_new)\n",
+					""
+				],
+				"execution_count": 38
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<mark>**write parquet file into secondary storage**</mark>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_new.to_parquet('abfss://output@secondarystorageaccount.dfs.core.windows.net/output/data.parquet')\n",
+					""
 				],
 				"execution_count": null
 			}

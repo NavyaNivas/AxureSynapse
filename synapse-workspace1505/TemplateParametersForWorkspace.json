@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "synapse-workspace1505"
 		},
+		"SecondaryStorageConnection_connectionString": {
+			"value": ""
+		},
 		"synapse-workspace1505-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapse-workspace1505.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},

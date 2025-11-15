@@ -7,6 +7,10 @@
 			"metadata": "Workspace name",
 			"defaultValue": "synapse-workspace1505"
 		},
+		"SecondaryStorageConnection_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SecondaryStorageConnection'"
+		},
 		"synapse-workspace1505-WorkspaceDefaultSqlServer_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'synapse-workspace1505-WorkspaceDefaultSqlServer'",
@@ -21,6 +25,26 @@
 		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/SecondaryStorageConnection')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "Linked service to connect to secondary storage account ",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('SecondaryStorageConnection_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/synapse-workspace1505-WorkspaceDefaultSqlServer')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
@@ -234,7 +258,214 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "3c147abb-3098-4739-8ec2-4f0297c7e5c0"
+						"spark.autotune.trackingId": "98467903-2e03-4869-b9f3-814c06c5ba7a"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/5273a484-920e-4cf4-b6e5-b107b5d28d31/resourceGroups/synapse-rg/providers/Microsoft.Synapse/workspaces/synapse-workspace1505/bigDataPools/Sparkpool",
+						"name": "Sparkpool",
+						"type": "Spark",
+						"endpoint": "https://synapse-workspace1505.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.5",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**Reading a file from blob storage and write file into container**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"import pandas as pd\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**reading the file inside the primary storage account linked to the synapse workspace..**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df = spark.read.load(\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/input/employee_data.csv\",format=\"csv\",header =True)\n",
+							"df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**Filter the data based on condition.**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df_new=df.filter(df.deptID == 10)\n",
+							"df_new.show()"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**writing the new data into csv file**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df_new.write.mode(\"overwrite\").csv(\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/output/abc.csv\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**similarly we can read and write parquet files:**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df = spark.read.load(path=\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/input/salary_data.parquet\",format=\"parquet\")\n",
+							"df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**Using filter function**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df_new = df.filter(df.department==\"IT\")\n",
+							"df_new.show()"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**writing the filter data into parquet file in container 2**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df_new.write.mode(\"overwrite\").parquet(path=\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/output/dept.parquet\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Sparkpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "ac533b8f-3a55-40bb-9d98-c214d6baf07a"
 					}
 				},
 				"metadata": {
@@ -275,18 +506,28 @@
 							}
 						},
 						"source": [
-							"<mark>**Reading a file from blob storage and write file into container**</mark>"
+							"<mark>**Reading the file from secondary storage account- we should add blob storage data contributor role in the secondary storage\n",
+							"**</mark>"
 						]
 					},
 					{
 						"cell_type": "code",
 						"metadata": {},
 						"source": [
-							"import pandas as pd\n",
-							""
+							"print(\"Hello\")"
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df=spark.read.load(path=\"abfss://input@secondarystorageaccount.dfs.core.windows.net/employee_data.csv\",format=\"csv\",header=True)\n",
+							"df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 5
 					},
 					{
 						"cell_type": "markdown",
@@ -298,131 +539,60 @@
 							}
 						},
 						"source": [
-							"<mark>**reading the file inside the primary storage account linked to the synapse workspace..**</mark>"
+							"<mark>**write the data into file**</mark>"
 						]
 					},
 					{
 						"cell_type": "code",
 						"metadata": {},
 						"source": [
-							"df = spark.read.load(\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/input/employee_data.csv\",format=\"csv\",header =True)\n",
+							"df.write.mode(\"overwrite\").csv(path =\"abfss://output@secondarystorageaccount.dfs.core.windows.net/employee_data.csv\")\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**Read and write opertains fro parquet file:**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df=spark.read.load(path=\"abfss://input@secondarystorageaccount.dfs.core.windows.net/salary_data.parquet\",format=\"parquet\",header=True)\n",
 							"df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_new = df.filter(df.department == \"IT\")\n",
+							"df_new.show()"
 						],
 						"outputs": [],
 						"execution_count": 10
 					},
 					{
-						"cell_type": "markdown",
-						"metadata": {
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"<mark>**Filter the data based on condition.**</mark>"
-						]
-					},
-					{
 						"cell_type": "code",
 						"metadata": {},
 						"source": [
-							"df_new=df.filter(df.deptID == 10)\n",
-							"df_new.show()"
+							"df.write.mode(\"overwrite\").parquet(path=\"abfss://output@secondarystorageaccount.dfs.core.windows.net/parquet\")"
 						],
 						"outputs": [],
-						"execution_count": 17
-					},
-					{
-						"cell_type": "markdown",
-						"metadata": {
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"<mark>**writing the new data into csv file**</mark>"
-						]
-					},
-					{
-						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							"df_new.write.mode(\"overwrite\").csv(\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/output/abc.csv\")"
-						],
-						"outputs": [],
-						"execution_count": 18
-					},
-					{
-						"cell_type": "markdown",
-						"metadata": {
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"<mark>**similarly we can read and write parquet files:**</mark>"
-						]
-					},
-					{
-						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							"df = spark.read.load(path=\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/input/salary_data.parquet\",format=\"parquet\")\n",
-							"df.show(10)"
-						],
-						"outputs": [],
-						"execution_count": 21
-					},
-					{
-						"cell_type": "markdown",
-						"metadata": {
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"<mark>**Using filter function**</mark>"
-						]
-					},
-					{
-						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							"df_new = df.filter(df.department==\"IT\")\n",
-							"df_new.show()"
-						],
-						"outputs": [],
-						"execution_count": 23
-					},
-					{
-						"cell_type": "markdown",
-						"metadata": {
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
-						},
-						"source": [
-							"<mark>**writing the filter data into parquet file in container 2**</mark>"
-						]
-					},
-					{
-						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							"df_new.write.mode(\"overwrite\").parquet(path=\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/output/dept.parquet\")"
-						],
-						"outputs": [],
-						"execution_count": 24
+						"execution_count": 13
 					}
 				]
 			},

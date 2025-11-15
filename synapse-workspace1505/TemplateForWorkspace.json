@@ -258,7 +258,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "c38dcf2a-aea0-4f5c-a09c-f1f1b9fe633e"
+						"spark.autotune.trackingId": "1709dd4d-4352-4dbe-83e8-e3fe1b762831"
 					}
 				},
 				"metadata": {
@@ -465,7 +465,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "7323923b-f30c-4969-93ad-b3f932cf692e"
+						"spark.autotune.trackingId": "cc67d3f0-b606-4c15-a129-f0b14f0975ae"
 					}
 				},
 				"metadata": {
@@ -490,8 +490,7 @@
 						"sparkVersion": "3.5",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -512,7 +511,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"print(\"Hello\")"
 						],
@@ -521,7 +519,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df=spark.read.load(path=\"abfss://input@secondarystorageaccount.dfs.core.windows.net/employee_data.csv\",format=\"csv\",header=True)\n",
 							"df.show(10)"
@@ -544,7 +541,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df.write.mode(\"overwrite\").csv(path =\"abfss://output@secondarystorageaccount.dfs.core.windows.net/employee_data.csv\")\n",
 							""
@@ -567,7 +563,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df=spark.read.load(path=\"abfss://input@secondarystorageaccount.dfs.core.windows.net/salary_data.parquet\",format=\"parquet\",header=True)\n",
 							"df.show(10)"
@@ -577,7 +572,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_new = df.filter(df.department == \"IT\")\n",
 							"df_new.show()"
@@ -587,7 +581,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df.write.mode(\"overwrite\").parquet(path=\"abfss://output@secondarystorageaccount.dfs.core.windows.net/parquet\")"
 						],
@@ -619,7 +612,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "6274b5b3-aa12-4208-acb0-e400bfea3fe9"
+						"spark.autotune.trackingId": "2005b27b-94c0-4c2e-a1ea-a59c8214c38e"
 					}
 				},
 				"metadata": {
@@ -644,15 +637,129 @@
 						"sparkVersion": "3.5",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
-							"Import pandas as pd"
+							"spark.conf.set(\"spark.sql.execution.arrow.pyspark.enabled\", \"false\")\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 40
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**Read and write opertaions in the default storage account using pandas library**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"print(\"Hello\")"
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"import pandas as pd"
+						],
+						"outputs": [],
+						"execution_count": 27
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df=pd.read_csv('abfss://input@secondarystorageaccount.dfs.core.windows.net/employee_data.csv')\n",
+							"print(df)"
+						],
+						"outputs": [],
+						"execution_count": 28
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_new=df[df['deptID']==10]\n",
+							"print(df_new)\n",
+							"\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 29
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_new.to_csv('abfss://output@secondarystorageaccount.dfs.core.windows.net/data.csv')"
+						],
+						"outputs": [],
+						"execution_count": 31
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**Read & write operations of parquet file usinh pandas**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"import pandas as pd\n",
+							"df = spark.read.load(path='abfss://input@secondarystorageaccount.dfs.core.windows.net/salary_data.parquet',format='parquet')\n",
+							"df_new=df.toPandas()\n",
+							"print(df_new)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 38
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"<mark>**write parquet file into secondary storage**</mark>"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_new.to_parquet('abfss://output@secondarystorageaccount.dfs.core.windows.net/output/data.parquet')\n",
+							""
 						],
 						"outputs": [],
 						"execution_count": null

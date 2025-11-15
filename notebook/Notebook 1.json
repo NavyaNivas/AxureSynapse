@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "88ac3508-d9ea-4708-906c-ac23245bad82"
+				"spark.autotune.trackingId": "98467903-2e03-4869-b9f3-814c06c5ba7a"
 			}
 		},
 		"metadata": {
@@ -67,7 +67,7 @@
 					"import pandas as pd\n",
 					""
 				],
-				"execution_count": 1
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -88,7 +88,7 @@
 					"df = spark.read.load(\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/input/employee_data.csv\",format=\"csv\",header =True)\n",
 					"df.show(10)"
 				],
-				"execution_count": 10
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -109,7 +109,7 @@
 					"df_new=df.filter(df.deptID == 10)\n",
 					"df_new.show()"
 				],
-				"execution_count": 17
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -129,7 +129,7 @@
 				"source": [
 					"df_new.write.mode(\"overwrite\").csv(\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/output/abc.csv\")"
 				],
-				"execution_count": 18
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -150,7 +150,7 @@
 					"df = spark.read.load(path=\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/input/salary_data.parquet\",format=\"parquet\")\n",
 					"df.show(10)"
 				],
-				"execution_count": 21
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -171,7 +171,7 @@
 					"df_new = df.filter(df.department==\"IT\")\n",
 					"df_new.show()"
 				],
-				"execution_count": 23
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -191,7 +191,7 @@
 				"source": [
 					"df_new.write.mode(\"overwrite\").parquet(path=\"abfss://synapsecontainer@synapsestorage1505.dfs.core.windows.net/data/output/dept.parquet\")"
 				],
-				"execution_count": 24
+				"execution_count": null
 			}
 		]
 	}

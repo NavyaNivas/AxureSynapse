@@ -1,0 +1,139 @@
+{
+	"name": "Notebook 2",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "Sparkpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "1b7d1a21-c5cb-40ab-8997-5e105c4d09a0"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/5273a484-920e-4cf4-b6e5-b107b5d28d31/resourceGroups/synapse-rg/providers/Microsoft.Synapse/workspaces/synapse-workspace1505/bigDataPools/Sparkpool",
+				"name": "Sparkpool",
+				"type": "Spark",
+				"endpoint": "https://synapse-workspace1505.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Sparkpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<mark>**Reading the file from secondary storage account- we should add blob storage data contributor role in the secondary storage\n",
+					"**</mark>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"print(\"Hello\")"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df=spark.read.load(path=\"abfss://input@secondarystorageaccount.dfs.core.windows.net/employee_data.csv\",format=\"csv\",header=True)\n",
+					"df.show(10)"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<mark>**write the data into file**</mark>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df.write.mode(\"overwrite\").csv(path =\"abfss://output@secondarystorageaccount.dfs.core.windows.net/employee_data.csv\")\n",
+					""
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<mark>**Read and write opertains fro parquet file:**</mark>"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df=spark.read.load(path=\"abfss://input@secondarystorageaccount.dfs.core.windows.net/salary_data.parquet\",format=\"parquet\",header=True)\n",
+					"df.show(10)"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_new = df.filter(df.department == \"IT\")\n",
+					"df_new.show()"
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df.write.mode(\"overwrite\").parquet(path=\"abfss://output@secondarystorageaccount.dfs.core.windows.net/parquet\")"
+				],
+				"execution_count": 13
+			}
+		]
+	}
+}

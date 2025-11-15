@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "278cc94b-c874-4b77-9dad-ceaf1243991a"
+				"spark.autotune.trackingId": "b907ba7e-8c71-4e5d-9629-936f329ccf99"
 			}
 		},
 		"metadata": {
@@ -66,7 +66,7 @@
 				"source": [
 					"print(\"Hello\")"
 				],
-				"execution_count": 3
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -90,10 +90,18 @@
 					"# Read a csv file \n",
 					"csv_path = wasbs_path + 'employee_data.csv' \n",
 					"df_csv = spark.read.csv(csv_path, header = 'true') \n",
+					"\n",
 					"        \n",
 					""
 				],
-				"execution_count": null
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_csv.show()"
+				],
+				"execution_count": 7
 			}
 		]
 	}

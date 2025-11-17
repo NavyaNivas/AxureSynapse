@@ -1,0 +1,17 @@
+{
+	"name": "SQL_Dedeicated_learning",
+	"properties": {
+		"content": {
+			"query": "--openrowset will not work here\n\n--first create dedicated sql pool in mange tab\n\n--connect  to that pool \n\n--as db is already created we can simply create internal table here\n\nCREATE TABLE tabl1\n(\nempID\tint\t,\nname\tvarchar(30)\t,\ngender\tvarchar(30)\t,\ncountry\tvarchar(30)\t,\nsalary\tint\t,\ndepartment\tvarchar(30)\t\n\n)\nWITH(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n    \n\n)\nGO\n\n--drop  table tabl1\n\ninsert INTO tabl1 values  (1,'Navya','female','India',10000,'IT')\ninsert INTO tabl1 values (2,'Kavya','female','India',10000,'IT')\ninsert INTO tabl1 values (3,'Ramya','female','India',100000,'Sales')\ninsert INTO tabl1 values (4,'Phani','male','US',1000,'HR')\ninsert INTO tabl1 values (5,'Chaitu','male','China',10000,'IT')\nGO\n\nselect * from tabl1\n\n\n\n\n\nCREATE  table tabl2\nWITH(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n)AS \n\nselect empID,name,department from tabl1\n\n\nselect * from tabl2\n\n\n\nCREATE TABLE tabl4\n(\nempID\tint\t,\nname\tvarchar(8000)\t,\ngender\tvarchar(8000)\t,\ncountry\tvarchar(8000)\t,\nsalary\tint\t,\ndepartment\tvarchar(8000)\t\n\n)\nWITH(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n    \n\n)\nGO\n\n--https://synapsestorage1505.blob.core.windows.net/input/salary_data.parquet\n--abfss://input@synapsestorage1505.dfs.core.windows.net/salary_data.parquet\n\n\nCOPY INTO tabl4\nFROM 'https://synapsestorage1505.blob.core.windows.net/input/salary_data.parquet'\nWITH(\n    FILE_TYPE = 'parquet',\n    MAXERRORS = 0\n)\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "mydedicatedsql",
+				"poolName": "mydedicatedsql"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
